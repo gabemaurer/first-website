@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Video Editor - TikTok Edition</title>
+    <meta name="description" content="Create amazing TikTok videos with AI-powered editing. Import clips, add effects, and export for social media - all from your phone!">
+    <meta name="theme-color" content="#00f2ea">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Video Editor">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="no-referrer">
+    
+    <!-- Privacy Policy -->
+    <meta name="privacy" content="All data processed locally. No tracking. No data collection.">
+
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🎬 AI Video Editor</h1>
+            <p class="subtitle">Create amazing TikTok videos with AI-powered editing</p>
+        </header>
+
+        <!-- Import Section -->
+        <section class="import-section">
+            <div class="import-area" id="importArea">
+                <input type="file" id="fileInput" accept="video/*,image/*" multiple style="display: none;">
+                <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
+                    📱 Import Clips & Photos
+                </button>
+                <p class="hint">or drag and drop files here</p>
+            </div>
+        </section>
+
+        <!-- Media Library -->
+        <section class="media-library" id="mediaLibrary" style="display: none;">
+            <h2>📚 Your Media Library</h2>
+            <div class="media-grid" id="mediaGrid"></div>
+        </section>
+
+        <!-- Video Editor -->
+        <section class="editor-section" id="editorSection" style="display: none;">
+            <h2>✂️ Video Editor</h2>
+            
+            <!-- Preview Area -->
+            <div class="preview-container">
+                <canvas id="previewCanvas"></canvas>
+                <video id="previewVideo" style="display: none;"></video>
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline-container">
+                <h3>Timeline</h3>
+                <div class="timeline" id="timeline">
+                    <div class="playhead" id="playhead"></div>
+                    <div class="timeline-tracks" id="timelineTracks"></div>
+                </div>
+                
+                <!-- Playback Controls -->
+                <div class="playback-controls">
+                    <button onclick="videoEditor.play()" class="control-btn">▶️ Play</button>
+                    <button onclick="videoEditor.pause()" class="control-btn">⏸️ Pause</button>
+                    <button onclick="videoEditor.reset()" class="control-btn">⏮️ Reset</button>
+                    <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
+                </div>
+            </div>
+
+            <!-- Edit Controls -->
+            <div class="edit-controls">
+                <h3>Edit Controls</h3>
+                <div class="controls-grid">
+                    <button class="btn-control" onclick="videoEditor.addTransition('fade')">➕ Add Fade</button>
+                    <button class="btn-control" onclick="videoEditor.addTransition('zoom')">🔍 Add Zoom</button>
+                    <button class="btn-control" onclick="videoEditor.addFilter('vibrant')">🎨 Vibrant Filter</button>
+                    <button class="btn-control" onclick="videoEditor.addFilter('vintage')">📸 Vintage Filter</button>
+                    <button class="btn-control" onclick="videoEditor.adjustSpeed(0.5)">🐌 Slow Motion</button>
+                    <button class="btn-control" onclick="videoEditor.adjustSpeed(2.0)">⚡ Speed Up</button>
+                </div>
+                
+                <div class="audio-controls">
+                    <label>🔊 Audio Volume:</label>
+                    <input type="range" id="volumeSlider" min="0" max="100" value="100" onchange="videoEditor.setVolume(this.value)">
+                    <span id="volumeValue">100%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Suggestions Panel -->
+        <section class="ai-panel" id="aiPanel" style="display: none;">
+            <h2>🤖 AI Editor Suggestions</h2>
+            
+            <!-- Reference Video Upload -->
+            <div class="reference-upload">
+                <h3>🎯 Style Reference (Optional)</h3>
+                <p class="reference-hint">Upload a video whose editing style you want to match</p>
+                <input type="file" id="referenceInput" accept="video/*" style="display: none;">
+                <button class="btn-reference" onclick="document.getElementById('referenceInput').click()">
+                    📤 Upload Reference Video
+                </button>
+                <div id="referencePreview" style="display: none;">
+                    <p class="reference-loaded">✅ Reference video loaded! AI will match this style.</p>
+                    <button class="btn-remove-ref" onclick="aiEditor.removeReference()">❌ Remove Reference</button>
+                </div>
+            </div>
+            
+            <div class="ai-status">
+                <button class="btn-ai" onclick="aiEditor.analyzeCurrent()">🔍 Analyze My Video</button>
+                <button class="btn-ai" onclick="aiEditor.autoEnhance()">✨ Auto-Enhance</button>
+            </div>
+            <div class="suggestions-container" id="suggestionsContainer">
+                <p class="ai-hint">Click "Analyze My Video" to get AI-powered editing suggestions!</p>
+            </div>
+            
+            <!-- AI Text Commands -->
+            <div class="ai-commands">
+                <h3>💬 Tell AI What to Do</h3>
+                <p class="commands-hint">Type what you want, AI will do it! Examples: "add slow motion at 0:15" or "make clip 2 brighter"</p>
+                <div class="command-input-container">
+                    <input type="text" id="aiCommandInput" placeholder="e.g., add fade transition between clips 1 and 2" />
+                    <button class="btn-command" onclick="aiEditor.executeCommand()">✨ Execute</button>
+                </div>
+                <div class="command-history" id="commandHistory"></div>
+            </div>
+        </section>
+
+        <!-- Drafts Management -->
+        <section class="drafts-section">
+            <h2>💾 Your Drafts</h2>
+            <div class="drafts-controls">
+                <button class="btn-secondary" onclick="draftManager.saveDraft()">💾 Save Draft</button>
+                <button class="btn-secondary" onclick="draftManager.showDrafts()">📂 Load Draft</button>
+                <button class="btn-secondary" onclick="draftManager.exportVideo()">📤 Export for TikTok</button>
+            </div>
+            <div class="drafts-list" id="draftsList" style="display: none;"></div>
+        </section>
+
+        <!-- Export Modal -->
+        <div class="modal" id="exportModal">
+            <div class="modal-content">
+                <span class="close" onclick="document.getElementById('exportModal').style.display='none'">&times;</span>
+                <h2>📤 Export Video</h2>
+                <div class="export-options">
+                    <label>
+                        <input type="radio" name="format" value="tiktok" checked> TikTok (9:16, 60fps)
+                    </label>
+                    <label>
+                        <input type="radio" name="format" value="instagram"> Instagram Reels (9:16)
+                    </label>
+                    <label>
+                        <input type="radio" name="format" value="youtube"> YouTube Shorts (9:16)
+                    </label>
+                </div>
+                <div class="export-progress" id="exportProgress" style="display: none;">
+                    <progress id="progressBar" value="0" max="100"></progress>
+                    <p id="progressText">Exporting...</p>
+                </div>
+                <button class="btn-primary" onclick="draftManager.startExport()">🎬 Export Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Notice -->
+    <div class="privacy-notice">
+        <p>🔒 <strong>Your Privacy is Protected:</strong> All editing happens on your device. No data is uploaded to any server. Your IP address and personal information are never collected or shared.</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
